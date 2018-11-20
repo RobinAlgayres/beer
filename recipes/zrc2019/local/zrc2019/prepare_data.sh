@@ -2,28 +2,30 @@
 
 
 # Path to the data.
-datapath=samples.tar.bz2
 
 
-if [ $# -ne 1 ]; then
-    echo "usage: $0 <out-datadir>"
+if [ $# -ne 3 ]; then
+    echo "usage: $0 <out-datadir> <datapath> <dataset>"
     exit 1
 fi
 
 datadir=$1
-
+datapath=$2
+data_folder=$(basename $datapath)
+data_folder=${data_folder%%.*}
+dataset=$3
 
 # Download the data.
 if [ ! -f $datadir/local/.done ]; then
     echo "Extracting data..."
     mkdir -p $datadir/local/
-    tar -xvzf $datapath -C $datadir/local
+    tar -jxf $datapath -C $datadir/local
     date > $datadir/local/.done
 else
     echo "Data already extracted. Skipping."
 fi
 
-mkdir -p $datadir/train
+mkdir -p $datadir/$dataset
 
 function scp_line {
     wav=$0
@@ -34,14 +36,14 @@ function scp_line {
 export -f scp_line
 
 
-if [ ! -f $datadir/train/uttids ]; then
+if [ ! -f $datadir/$dataset/uttids ]; then
     echo "creating wavs.scp file..."
-    find $datadir/local/samples -name '*wav' \
+    find $datadir/local/$data_folder -name '*wav' \
         -exec bash -c 'scp_line "$0"' {} {} \; \
-        | sort | uniq > $datadir/train/wavs.scp
+        | sort | uniq > $datadir/$dataset/wavs.scp
 
     echo "creating uttids file..."
-    cat $datadir/train/wavs.scp | awk '{print $1}' >$datadir/train/uttids
+    cat $datadir/$dataset/wavs.scp | awk '{print $1}' >$datadir/$dataset/uttids
 else
     echo "training data already prepared. Skipping."
 fi

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-if [ $# -ne 6 ]; then
-    echo "usage: <model-conf> <dataset> <epochs> <learning-rate> <batch-size> <out-dir>"
+if [ $# -ne 7 ]; then
+    echo "usage: <model-conf> <dataset> <epochs> <learning-rate> <batch-size> <out-dir> <transcription filename>"
     exit 1
 fi
 
@@ -11,6 +11,7 @@ epochs=$3
 lrate=$4
 bsize=$5
 outdir=$6
+transcription=$7
 mkdir -p $outdir
 
 
@@ -46,11 +47,11 @@ else
 fi
 
 # Generating labels.
-if [ ! -f $outdir/trans.txt ]; then
+if [ ! -f $outdir/$transcription ]; then
     # Creating the most likely transcription.
     echo "generating transcription for the $dataset dataset..."
     beer hmm decode --per-frame $outdir/final.mdl \
-        $dataset > $outdir/trans.txt || exit 1
+        $dataset > $outdir/$transcription || exit 1
 else
     echo "transcription already generated. Skipping."
 fi

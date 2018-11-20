@@ -3,15 +3,21 @@
 #######################################################################
 ## SETUP
 
+if [ $# -ne 2 ]; then
+    echo "usage: $0 <wav_dir_tarbz2> <clean>"
+    exit 1
+fi
+
 # Directory structure
-datadir=data
-feadir=features
+datadir=data_run
+feadir=features_run
 expdir=exp
+wav=$1
 
 # Data
 db=zrc2019
-dataset=train
-
+dataset=testing
+transcription=trans_test.txt
 # Features
 feaname=mfcc
 
@@ -27,14 +33,21 @@ batch_size=400
 
 #######################################################################
 
+if [ $2 = 'clean' ]; then
+        rm -r $datadir $feadir
+        rm $expdir/$db/aud/$transcription
+        rm $expdir/$db/datasets/$dataset.pkl
+
+fi
+
 source activate beer
+
 
 mkdir -p $datadir $expdir $feadir
 
 
 echo "--> Preparing data for the $db database"
-local/$db/prepare_data.sh $datadir/$db || exit 1
-
+local/$db/prepare_data.sh $datadir/$db $wav $dataset || exit 1
 
 
 echo "--> Extracting features for the $db database"
@@ -53,7 +66,7 @@ steps/create_dataset.sh $datadir/$db/$dataset \
 
 echo "--> Acoustic Unit Discovery on $db database"
 steps/aud.sh conf/hmm.yml $expdir/$db/datasets/${dataset}.pkl \
-    $epochs $lrate $batch_size $expdir/$db/aud
+    $epochs $lrate $batch_size $expdir/$db/aud $transcription
 
 # Parallel training. Much faster (and more accurate). This is the
 # recommended training way. However, you need to have Sun Grid Engine
