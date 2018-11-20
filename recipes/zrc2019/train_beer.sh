@@ -24,7 +24,7 @@ feaname=mfcc
 
 # AUD training
 # The number of epochs probably needs to be tuned to the final data.
-epochs=1
+epochs=8
 
 # These parameter will be ignore if you do parallel training. More
 # precisely, the learning rate will be set to 1 and the batch
