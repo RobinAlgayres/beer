@@ -17,9 +17,9 @@ dataset=$3
 
 # Download the data.
 if [ ! -f $datadir/local/.done ]; then
-    echo "Extracting data..."
+    echo "Copying data..."
     mkdir -p $datadir/local/
-    tar -jxf $datapath -C $datadir/local
+    cp -r $datapath $datadir/local
     date > $datadir/local/.done
 else
     echo "Data already extracted. Skipping."
