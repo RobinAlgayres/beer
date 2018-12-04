@@ -3,6 +3,7 @@
 #######################################################################
 ## SETUP
 
+python ../../setup.py install
 
 if [ $# -ne 2 ]; then
     echo "usage: $0 <wav_dir_tarbz2> <clean>"
