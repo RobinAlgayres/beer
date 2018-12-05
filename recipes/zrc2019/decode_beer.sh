@@ -17,7 +17,7 @@ wav=$1
 # Data
 db=zrc2019
 dataset=testing
-transcription=trans_test.txt
+transcription=$(basename $1).txt
 # Features
 feaname=mfcc
 
