@@ -3,8 +3,8 @@
 #######################################################################
 ## SETUP
 
-if [ $# -ne 2 ]; then
-    echo "usage: $0 <wav_dir_tarbz2> <clean>"
+if [ $# -ne 3 ]; then
+    echo "usage: $0 <wav_dir> <embedding_dir> <clean>"
     exit 1
 fi
 
@@ -13,6 +13,7 @@ datadir=data_run
 feadir=features_run
 expdir=exp
 wav=$1
+embedding_dir=$2
 
 # Data
 db=zrc2019
@@ -33,7 +34,7 @@ batch_size=400
 
 #######################################################################
 
-if [ $2 = 'clean' ]; then
+if [ $3 = 'clean' ]; then
         rm -r $datadir $feadir
         rm $expdir/$db/aud/$transcription
         rm $expdir/$db/datasets/$dataset.pkl
@@ -67,6 +68,8 @@ steps/create_dataset.sh $datadir/$db/$dataset \
 echo "--> Acoustic Unit Discovery on $db database"
 steps/aud.sh conf/hmm.yml $expdir/$db/datasets/${dataset}.pkl \
     $epochs $lrate $batch_size $expdir/$db/aud $transcription
+
+python beer_to_onehot.py $expdir/$db/aud/$transcription $embedding_dir 
 
 # Parallel training. Much faster (and more accurate). This is the
 # recommended training way. However, you need to have Sun Grid Engine

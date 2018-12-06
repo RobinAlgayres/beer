@@ -3,10 +3,9 @@
 #######################################################################
 ## SETUP
 
-python ../../setup.py install
 
 if [ $# -ne 2 ]; then
-    echo "usage: $0 <wav_dir_tarbz2> <clean>"
+    echo "usage: $0 <wav_dir> <clean>"
     exit 1
 fi
 
@@ -25,7 +24,7 @@ feaname=mfcc
 
 # AUD training
 # The number of epochs probably needs to be tuned to the final data.
-epochs=8
+epochs=1
 
 # These parameter will be ignore if you do parallel training. More
 # precisely, the learning rate will be set to 1 and the batch
@@ -37,7 +36,6 @@ batch_size=400
 
 if [ $2 = 'clean' ]; then
 	rm -r $datadir $feadir 
-	rm $expdir/$db/aud/$transcription
 	rm $expdir/$db/datasets/$dataset.pkl
 
 fi
@@ -65,7 +63,7 @@ steps/create_dataset.sh $datadir/$db/$dataset \
     $expdir/$db/datasets/${dataset}.pkl
 
 
-echo "--> Acoustic Unit Discovery on $db database"
+#echo "--> Acoustic Unit Discovery on $db database"
 steps/aud.sh conf/hmm.yml $expdir/$db/datasets/${dataset}.pkl \
     $epochs $lrate $batch_size $expdir/$db/aud $transcription
 
