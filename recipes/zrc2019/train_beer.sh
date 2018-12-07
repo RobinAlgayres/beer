@@ -36,8 +36,7 @@ batch_size=400
 
 if [ $2 = 'clean' ]; then
 	rm -r $datadir $feadir 
-	rm $expdir/$db/datasets/$dataset.pkl
-
+        rm -r $exp
 fi
 
 source activate beer
