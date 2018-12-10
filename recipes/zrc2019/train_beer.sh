@@ -4,27 +4,28 @@
 ## SETUP
 
 
-if [ $# -ne 2 ]; then
-    echo "usage: $0 <wav_dir> <clean>"
+if [ "$#" -ne 5 -a "$#" -ne 6 ]; then
+    echo "usage: $0 <wav_dir> <corpus> <subset> <nepochs> <clean|noclean> [<decode_dir>]"
     exit 1
 fi
 
 # Directory structure
-datadir=data
-feadir=features
+name="$3"
+datadir=data_"$name"
+feadir=features_"$name"
 expdir=exp
 
 # Data
-db=zrc2019
-dataset=train
-wav=$1
-transcription=trans.txt
+db="$2"
+dataset="$name"
+wav="$1"
+transcription=trans_"$name".txt
 # Features
 feaname=mfcc
 
 # AUD training
 # The number of epochs probably needs to be tuned to the final data.
-epochs=8
+epochs=$4
 
 # These parameter will be ignore if you do parallel training. More
 # precisely, the learning rate will be set to 1 and the batch
@@ -34,24 +35,27 @@ batch_size=400
 
 #######################################################################
 
-if [ $2 = 'clean' ]; then
-	rm -r $datadir $feadir 
-        rm -r $exp
+if [ "$5" = 'clean'  ]; then
+	rm -rf $datadir $feadir 
+elif [ "$5" = 'cleantrans' ]; then
+	rm -rf $datadir $feadir 
+        rm -f $expdir/$db/aud/$transcription
+elif [ "$5" = 'cleanall' ]; then
+	rm -rf $datadir $feadir 
+        rm -rf $expdir
 fi
 
 source activate beer
 
 mkdir -p $datadir $expdir $feadir
 
-
 echo "--> Preparing data for the $db database"
-local/$db/prepare_data.sh $datadir/$db $wav $dataset || exit 1
+local/zrc2019/prepare_data.sh $datadir/$db $wav $dataset || exit 1
 
 
 echo "--> Extracting features for the $db database"
 steps/extract_features.sh conf/${feaname}.yml $datadir/$db/$dataset \
      $feadir/$db/$dataset || exit 1
-
 
 # Create a "dataset". This "dataset" is just an object
 # associating the features with their utterance id and some
@@ -62,7 +66,7 @@ steps/create_dataset.sh $datadir/$db/$dataset \
     $expdir/$db/datasets/${dataset}.pkl
 
 
-#echo "--> Acoustic Unit Discovery on $db database"
+echo "--> Acoustic Unit Discovery on $db database"
 steps/aud.sh conf/hmm.yml $expdir/$db/datasets/${dataset}.pkl \
     $epochs $lrate $batch_size $expdir/$db/aud $transcription
 
@@ -75,4 +79,11 @@ steps/aud.sh conf/hmm.yml $expdir/$db/datasets/${dataset}.pkl \
 #    data/$db/train/uttids \
 #    $expdir/$db/datasets/${dataset}.pkl \
 #    $epochs $expdir/$db/aud
+
+if [ "$#" -eq 6 ]; then
+	embedding_dir=$6
+	python beer_to_onehot.py $expdir/$db/aud/$transcription $embedding_dir 
+fi
+
+source deactivate 
 
